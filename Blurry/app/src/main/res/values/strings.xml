@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Blurry</string>
+
+    <string name="rationale_storage">This app needs access to your storage so you can choose photos.</string>
+
+    <string name="choose_photo">Choose a photo</string>
 </resources>
