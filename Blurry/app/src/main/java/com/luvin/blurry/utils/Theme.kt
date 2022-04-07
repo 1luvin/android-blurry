@@ -6,6 +6,7 @@ import android.graphics.drawable.shapes.RectShape
 import android.graphics.drawable.shapes.RoundRectShape
 import androidx.annotation.IntegerRes
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import com.luvin.blurry.MainApplication
 import com.luvin.blurry.R
 import java.lang.Exception
@@ -27,6 +28,11 @@ class Theme
             } catch (e: Exception) {
                 0xFF000000.toInt()
             }
+        }
+
+        fun alphaColor(color: Int, alpha: Float) : Int
+        {
+            return ColorUtils.setAlphaComponent( color, (255 * alpha).toInt())
         }
 
         fun drawable(drawableKey: Int) : Drawable

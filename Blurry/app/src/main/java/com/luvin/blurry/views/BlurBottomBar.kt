@@ -3,6 +3,7 @@ package com.luvin.blurry.views
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
@@ -24,6 +25,24 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     private lateinit var itemsLayout: LinearLayout
     private lateinit var blurSliderView: SliderView
     private lateinit var dimSliderView: SliderView
+
+    private var blurListener: ((Int) -> Unit)? = null
+    fun onBlurChanged(l: (Int) -> Unit)
+    {
+        blurListener = l
+    }
+
+    private var dimListener: ((Float) -> Unit)? = null
+    fun onDimChanged(l: (Float) -> Unit)
+    {
+        dimListener = l
+    }
+
+    private var saveListener: (() -> Unit)? = null
+    fun onSave(l: () -> Unit)
+    {
+        saveListener = l
+    }
 
     init
     {
@@ -105,6 +124,17 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             }
         }
 
+        val saveItem = ItemView().apply {
+            itemName = Locale.string(R.string.save)
+            setItemIcon( Theme.drawable(R.drawable.done) )
+
+            color = Theme.color(R.color.main)
+
+            setOnClickListener {
+                saveListener?.invoke()
+            }
+        }
+
         itemsLayout = LinearLayout(context).apply {
             addView(blurItem, Layout.linear(
                 Layout.MATCH_PARENT, Layout.MATCH_PARENT,
@@ -114,12 +144,36 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 Layout.MATCH_PARENT, Layout.MATCH_PARENT,
                 1F
             ))
+            addView(saveItem, Layout.linear(
+                Layout.MATCH_PARENT, Layout.MATCH_PARENT,
+                1F
+            ))
         }
     }
 
     private fun createBlurSliderView()
     {
-        blurSliderView = SliderView().apply {
+        val slider = Slider(context).apply {
+            valueFrom = 10F
+            valueTo = 100F
+
+            value = 20F
+
+            addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                @SuppressLint("RestrictedApi")
+                override fun onStartTrackingTouch(slider: Slider)
+                {
+                    //
+                }
+                @SuppressLint("RestrictedApi")
+                override fun onStopTrackingTouch(slider: Slider)
+                {
+                    blurListener?.invoke( slider.value.toInt() )
+                }
+            })
+        }
+
+        blurSliderView = SliderView(slider).apply {
             visibility = View.GONE
             onDone {
                 navigate(this, itemsLayout)
@@ -129,7 +183,28 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
 
     private fun createDimSliderView()
     {
-        dimSliderView = SliderView().apply {
+        val slider = Slider(context).apply {
+            valueFrom = 0F
+            valueTo = 70F
+
+            value = 0F
+
+            addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                @SuppressLint("RestrictedApi")
+                override fun onStartTrackingTouch(slider: Slider)
+                {
+                    //
+                }
+                @SuppressLint("RestrictedApi")
+                override fun onStopTrackingTouch(slider: Slider)
+                {
+                    val alpha = slider.value / 100
+                    dimListener?.invoke(alpha)
+                }
+            })
+        }
+
+        dimSliderView = SliderView(slider).apply {
             visibility = View.GONE
             onDone {
                 navigate(this, itemsLayout)
@@ -157,9 +232,17 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 textView.text = itemName
             }
 
+        var color: Int = Theme.WHITE
+            set(value) {
+                field = value
+
+                textView.setTextColor(color)
+                imageView.drawable.setTint(color)
+            }
+
         fun setItemIcon(drawable: Drawable)
         {
-            drawable.setTint( Theme.WHITE )
+            drawable.setTint( color )
             imageView.setImageDrawable(drawable)
         }
 
@@ -209,9 +292,8 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
 
     }
 
-    inner class SliderView() : FrameLayout(context)
+    inner class SliderView(private val slider: Slider) : FrameLayout(context)
     {
-        private var slider: Slider
         private var doneButton: ImageView
 
         private var doneListener: (() -> Unit)? = null
@@ -222,10 +304,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
 
         init
         {
-            slider = Slider(context).apply {
-                valueFrom = 0F
-                valueTo = 1F
-
+            slider.apply {
                 trackTintList = ColorStateList.valueOf( Theme.WHITE )
                 thumbTintList = ColorStateList.valueOf( Theme.color(R.color.main) )
                 haloTintList = ColorStateList.valueOf( Theme.color(R.color.main_under) )
