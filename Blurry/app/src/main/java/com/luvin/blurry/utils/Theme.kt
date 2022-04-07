@@ -15,17 +15,26 @@ class Theme
     companion object
     {
         const val WHITE = 0xFFFFFFFF.toInt()
+        const val BLACK = 0xFF000000.toInt()
 
-        fun color(colorKey: Int) : Int {
+        fun color(colorKey: Int) : Int
+        {
             return try {
                 ContextCompat.getColor(
                     MainApplication.appContext(),
                     colorKey
                 )
             } catch (e: Exception) {
-                println("SFSSDFSDG")
                 0xFF000000.toInt()
             }
+        }
+
+        fun drawable(drawableKey: Int) : Drawable
+        {
+            return ContextCompat.getDrawable(
+                MainApplication.appContext(),
+                drawableKey
+            )!!
         }
 
         fun rect(colorKey: Int, radii: FloatArray? = null) : Drawable

@@ -1,6 +1,7 @@
 package com.luvin.blurry.utils
 
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 
 class Layout
 {
@@ -24,6 +25,16 @@ class Layout
         fun frame(width: Int, height: Int) : FrameLayout.LayoutParams
         {
             return FrameLayout.LayoutParams(width, height)
+        }
+
+        fun linear(width: Int, height: Int) : LinearLayout.LayoutParams
+        {
+            return LinearLayout.LayoutParams(width, height)
+        }
+
+        fun linear(width: Int, height: Int, weight: Float) : LinearLayout.LayoutParams
+        {
+            return LinearLayout.LayoutParams(width, height, weight)
         }
     }
 }

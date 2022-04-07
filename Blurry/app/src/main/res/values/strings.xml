@@ -4,4 +4,7 @@
     <string name="rationale_storage">This app needs access to your storage so you can choose photos.</string>
 
     <string name="choose_photo">Choose a photo</string>
+
+    <string name="blur">Blur</string>
+    <string name="dim">Dim</string>
 </resources>

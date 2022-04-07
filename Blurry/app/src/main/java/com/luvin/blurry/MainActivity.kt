@@ -1,6 +1,7 @@
 package com.luvin.blurry
 
 import android.Manifest
+import android.content.Intent
 import android.graphics.Typeface
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -68,7 +69,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
         blurryTextView = TextView(this).apply {
             text = Locale.string(R.string.app_name)
             gravity = Gravity.CENTER
-            setTextColor( Theme.WHITE )
+            setTextColor( Theme.color(R.color.text) )
             setTextSize(TypedValue.COMPLEX_UNIT_DIP, 70F)
             typeface = Typeface.DEFAULT_BOLD
         }
@@ -136,10 +137,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
 
     private val selectPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
-            println("GOT A PHOTO BITCH!")
+            startBlurActivity()
         }
     }
     private fun selectPhoto() = selectPhoto.launch("image/*")
+
+    private fun startBlurActivity()
+    {
+        startActivity(
+            Intent(this, BlurActivity::class.java).apply {
+
+            }
+        )
+    }
 }
 
 
