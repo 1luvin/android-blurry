@@ -326,6 +326,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             slider.apply {
                 trackHeight = Utils.dp(3)
                 trackTintList = ColorStateList.valueOf( Theme.color(R.color.gray) )
+                trackActiveTintList = ColorStateList.valueOf( Theme.color(R.color.white) )
 
                 thumbRadius = Utils.dp(9)
                 thumbTintList = ColorStateList.valueOf( Theme.color(R.color.white) )

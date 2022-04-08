@@ -1,17 +1,13 @@
 package com.luvin.blurry
 
-import android.content.ContentResolver
-import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.view.Gravity
 import android.widget.FrameLayout
@@ -19,31 +15,19 @@ import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.TransitionOptions
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.luvin.blurry.utils.Layout
-import com.luvin.blurry.utils.Locale
 import com.luvin.blurry.utils.Theme
 import com.luvin.blurry.utils.Utils
 import com.luvin.blurry.viewmodels.BlurViewModel
 import com.luvin.blurry.views.BlurBottomBar
 import jp.wasabeef.glide.transformations.BlurTransformation
-import jp.wasabeef.glide.transformations.ColorFilterTransformation
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
 
 class BlurActivity : AppCompatActivity()
 {

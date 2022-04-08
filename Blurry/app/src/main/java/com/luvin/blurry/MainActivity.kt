@@ -2,6 +2,7 @@ package com.luvin.blurry
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -9,13 +10,14 @@ import android.os.Bundle
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -23,6 +25,7 @@ import com.luvin.blurry.utils.Layout
 import com.luvin.blurry.utils.Locale
 import com.luvin.blurry.utils.Theme
 import com.luvin.blurry.utils.Utils
+import com.luvin.blurry.viewmodels.MainViewModel
 import com.luvin.blurry.views.InstantPress
 import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.ColorFilterTransformation
@@ -30,6 +33,8 @@ import pub.devrel.easypermissions.EasyPermissions
 
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
 {
+    private val vm: MainViewModel by viewModels()
+
     private lateinit var rootLayout: FrameLayout
     private lateinit var imageView: ImageView
     private lateinit var blurryTextView: TextView
@@ -39,8 +44,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     {
         super.onCreate(savedInstanceState)
 
-        setupWindow()
         createUI()
+        setupWindow()
     }
 
     /*
@@ -49,7 +54,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
 
     private fun setupWindow()
     {
+        window.statusBarColor = Color.TRANSPARENT
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { view, windowInsets ->
+            val insets = windowInsets.getInsets( WindowInsetsCompat.Type.navigationBars() )
+            rootLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = insets.bottom
+            }
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private fun createUI()
@@ -82,22 +96,22 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     private fun createRootLayout()
     {
         rootLayout = FrameLayout(this).apply {
-            setBackgroundColor( Theme.color(R.color.bg) )
+            setBackgroundColor( Theme.color(R.color.black) )
         }
     }
 
     private fun createImageView()
     {
-        imageView = ImageView(this)
-
-        rootLayout.post {
-            Glide.with(this)
-                .load("https://picsum.photos/${rootLayout.width}/${rootLayout.height}")
-                .transform( BlurTransformation(30), ColorFilterTransformation( Theme.alphaColor(Theme.BLACK, 0.5F) ) )
-                .transition( DrawableTransitionOptions.withCrossFade(100) )
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .into(imageView)
+        imageView = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
         }
+
+        Glide.with(this)
+            .load( vm.randomPhotoUrl() )
+            .transform( ColorFilterTransformation( Theme.alphaColor(Theme.BLACK, 0.5F) ) )
+            .transition( DrawableTransitionOptions.withCrossFade(150) )
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .into(imageView)
     }
 
     private fun createBlurryTextView()
