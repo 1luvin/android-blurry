@@ -6,12 +6,17 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.ScaleDrawable
+import android.graphics.drawable.VectorDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.*
+import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.slider.LabelFormatter
 import com.google.android.material.slider.Slider
 import com.luvin.blurry.R
@@ -25,6 +30,12 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     private lateinit var itemsLayout: LinearLayout
     private lateinit var blurSliderView: SliderView
     private lateinit var dimSliderView: SliderView
+
+    private var closeListener: (() -> Unit)? = null
+    fun onClose(l: () -> Unit)
+    {
+        closeListener = l
+    }
 
     private var blurListener: ((Int) -> Unit)? = null
     fun onBlurChanged(l: (Int) -> Unit)
@@ -62,20 +73,34 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         ))
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int)
+    {
+        super.onMeasure(
+            MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(Utils.dp(80), MeasureSpec.EXACTLY)
+        )
+    }
+
     private fun navigate(from: View, to: View)
     {
         ValueAnimator.ofFloat(0F, 1F).apply {
-            duration = 200
+            duration = 120
 
             addUpdateListener {
-                val a = it.animatedValue as Float
+                val p = it.animatedValue as Float
+                val to_scale = 0.9F + p * 0.1F
+                val from_scale = 1.9F - to_scale
 
                 from.apply {
-                    alpha = 1F - a
+                    alpha = 1F - p
+                    scaleX = from_scale
+                    scaleY = from_scale
                 }
 
                 to.apply {
-                    alpha = a
+                    alpha = p
+                    scaleX = to_scale
+                    scaleY = to_scale
                 }
             }
 
@@ -86,6 +111,8 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
 
                     to.apply {
                         alpha = 0F
+                        scaleX = 0F
+                        scaleY = 0F
                         visibility = View.VISIBLE
                     }
                 }
@@ -106,6 +133,17 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
 
     private fun createItemsLayout()
     {
+        val closeItem = ItemView().apply {
+            itemName = Locale.string(R.string.close)
+            setItemIcon( Theme.drawable(R.drawable.close) )
+
+            color = Theme.color(R.color.red)
+
+            setOnClickListener {
+                closeListener?.invoke()
+            }
+        }
+
         val blurItem = ItemView().apply {
             itemName = Locale.string(R.string.blur)
             setItemIcon( Theme.drawable(R.drawable.blur) )
@@ -136,6 +174,10 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         }
 
         itemsLayout = LinearLayout(context).apply {
+            addView(closeItem, Layout.linear(
+                Layout.MATCH_PARENT, Layout.MATCH_PARENT,
+                1F
+            ))
             addView(blurItem, Layout.linear(
                 Layout.MATCH_PARENT, Layout.MATCH_PARENT,
                 1F
@@ -155,7 +197,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     {
         val slider = Slider(context).apply {
             valueFrom = 10F
-            valueTo = 100F
+            valueTo = 50F
 
             value = 20F
 
@@ -185,23 +227,13 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     {
         val slider = Slider(context).apply {
             valueFrom = 0F
-            valueTo = 70F
+            valueTo = 50F
 
             value = 0F
 
-            addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-                @SuppressLint("RestrictedApi")
-                override fun onStartTrackingTouch(slider: Slider)
-                {
-                    //
-                }
-                @SuppressLint("RestrictedApi")
-                override fun onStopTrackingTouch(slider: Slider)
-                {
-                    val alpha = slider.value / 100
-                    dimListener?.invoke(alpha)
-                }
-            })
+            addOnChangeListener { slider, value, fromUser ->
+                dimListener?.invoke( value / 100 )
+            }
         }
 
         dimSliderView = SliderView(slider).apply {
@@ -216,14 +248,6 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     {
         private var textView: TextView
         private var imageView: ImageView
-
-        private val textS: Float = 17F
-        private val imageS: Int = Utils.dp(24)
-
-        private val topM: Int = Utils.dp(15)
-        private val bottomM: Int = Utils.dp(15)
-
-        private val textImageIndent: Int = Utils.dp(20)
 
         var itemName: String = ""
             set(value) {
@@ -249,19 +273,20 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         init
         {
             isClickable = true
+            setOnTouchListener( InstantPress() )
 
             imageView = ImageView(context).apply {
                 scaleType = ImageView.ScaleType.CENTER
             }
             addView(imageView, Layout.frame(
-                imageS, imageS,
+                Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
                 Gravity.TOP or Gravity.CENTER_HORIZONTAL,
-                0, topM, 0, 0
+                0, Utils.dp(15), 0, 0
             ))
 
             textView = TextView(context).apply {
                 setTextColor( Theme.WHITE )
-                setTextSize(TypedValue.COMPLEX_UNIT_DIP, textS)
+                setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17F)
 
                 setLines(1)
                 maxLines = 1
@@ -269,9 +294,9 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 ellipsize = TextUtils.TruncateAt.END
             }
             addView(textView, Layout.frame(
-                Layout.MATCH_PARENT, Layout.MATCH_PARENT,
+                Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
                 Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-                Utils.dp(10), 0, Utils.dp(10), bottomM
+                Utils.dp(10), 0, Utils.dp(10), Utils.dp(15)
             ))
         }
 
@@ -283,18 +308,12 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 MeasureSpec.makeMeasureSpec(measuredWidth, MeasureSpec.AT_MOST),
                 0
             )
-
-            setMeasuredDimension(
-                MeasureSpec.getSize(widthMeasureSpec),
-                Utils.dp(80)
-            )
         }
-
     }
 
     inner class SliderView(private val slider: Slider) : FrameLayout(context)
     {
-        private var doneButton: ImageView
+        private var doneTextView: TextView
 
         private var doneListener: (() -> Unit)? = null
         fun onDone(l: () -> Unit)
@@ -305,32 +324,39 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         init
         {
             slider.apply {
-                trackTintList = ColorStateList.valueOf( Theme.WHITE )
-                thumbTintList = ColorStateList.valueOf( Theme.color(R.color.main) )
-                haloTintList = ColorStateList.valueOf( Theme.color(R.color.main_under) )
+                trackHeight = Utils.dp(3)
+                trackTintList = ColorStateList.valueOf( Theme.color(R.color.gray) )
+
+                thumbRadius = Utils.dp(9)
+                thumbTintList = ColorStateList.valueOf( Theme.color(R.color.white) )
+                haloTintList = ColorStateList.valueOf( Theme.alphaColor(Theme.color(R.color.white), 0.24F) )
 
                 labelBehavior = LabelFormatter.LABEL_GONE
             }
             addView(slider, Layout.frame(
-                Layout.MATCH_PARENT, Layout.MATCH_PARENT,
+                Layout.WRAP_CONTENT, Layout.MATCH_PARENT,
                 Gravity.START or Gravity.CENTER_VERTICAL,
-                Utils.dp(20), 0, Utils.dp(20 + 24 + 20), 0
+                Utils.dp(20), 0, 0, 0
             ))
 
-            doneButton = ImageView(context).apply {
-                isClickable = true
-                scaleType = ImageView.ScaleType.CENTER
+            doneTextView = TextView(context).apply {
+                setPadding(0, 0, Utils.dp(20), 0)
+                gravity = Gravity.CENTER_VERTICAL
 
-                setImageDrawable( Theme.drawable(R.drawable.done) )
+                setTextColor( Theme.color(R.color.main) )
+                setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18F)
+
+                isAllCaps = true
+
+                text = Locale.string(R.string.done)
 
                 setOnClickListener {
                     doneListener?.invoke()
                 }
             }
-            addView(doneButton, Layout.frame(
-                Utils.dp(24), Utils.dp(24),
-                Gravity.END or Gravity.CENTER_VERTICAL,
-                0, 0, Utils.dp(20), 0
+            addView(doneTextView, Layout.frame(
+                Layout.MATCH_PARENT, Layout.MATCH_PARENT,
+                Gravity.END
             ))
         }
 
@@ -338,12 +364,18 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-            setMeasuredDimension(
-                MeasureSpec.getSize(widthMeasureSpec),
-                Utils.dp(80)
+            doneTextView.measure(
+                0,
+                MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY)
+            )
+
+            val availableWidth = measuredWidth - (Utils.dp(20 * 2) + doneTextView.measuredWidth)
+
+            slider.measure(
+                MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.EXACTLY),
+                0
             )
         }
-
     }
 }
 

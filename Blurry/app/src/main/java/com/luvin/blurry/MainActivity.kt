@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.view.WindowInsetsControllerCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -22,6 +23,7 @@ import com.luvin.blurry.utils.Layout
 import com.luvin.blurry.utils.Locale
 import com.luvin.blurry.utils.Theme
 import com.luvin.blurry.utils.Utils
+import com.luvin.blurry.views.InstantPress
 import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.ColorFilterTransformation
 import pub.devrel.easypermissions.EasyPermissions
@@ -37,7 +39,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     {
         super.onCreate(savedInstanceState)
 
+        setupWindow()
         createUI()
+    }
+
+    /*
+        UI
+     */
+
+    private fun setupWindow()
+    {
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
     }
 
     private fun createUI()
@@ -102,6 +114,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     private fun createChoosePhotoButton()
     {
         choosePhotoButton = Button(this).apply {
+            setOnTouchListener( InstantPress() )
+
             background = Theme.rect( R.color.main, radii = FloatArray(4).apply {
                 fill( Utils.dp(10F) )
             } )
@@ -116,6 +130,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
             }
         }
     }
+
+    /*
+        PERMISSIONS
+     */
 
     private fun checkPermissions()
     {
@@ -155,6 +173,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     {
         finish()
     }
+
+    /*
+       PHOTO
+     */
 
     private val selectPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
