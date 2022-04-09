@@ -56,6 +56,8 @@ dependencies {
     annotationProcessor "com.github.bumptech.glide:compiler:4.13.0"
     // Glide Transformation
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
+    // Blurry
+    implementation 'jp.wasabeef:blurry:4.0.1'
 }
 
 

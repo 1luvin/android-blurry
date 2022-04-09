@@ -1,9 +1,14 @@
 package com.luvin.blurry
 
-import android.content.Intent
+import android.animation.AnimatorListenerAdapter
+import android.animation.PropertyValuesHolder
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
@@ -11,10 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.TypedValue
 import android.view.Gravity
-import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.*
@@ -25,9 +31,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.luvin.blurry.utils.Layout
-import com.luvin.blurry.utils.Theme
-import com.luvin.blurry.utils.Utils
+import com.luvin.blurry.utils.*
 import com.luvin.blurry.viewmodels.BlurViewModel
 import com.luvin.blurry.views.BlurBottomBar
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -40,17 +44,19 @@ class BlurActivity : AppCompatActivity()
     private lateinit var rootLayout: FrameLayout
     private lateinit var photoView: ImageView
     private lateinit var bottomBar: BlurBottomBar
+    private lateinit var loadingText: TextView
 
-    private lateinit var uri: Uri
+    private lateinit var photoUri: Uri
+    private lateinit var photoBitmap: Bitmap
 
-    private var currentBlur: Int = 20
+    private var currentBlur: Int = 5
     private var currentDim: Float = 0F
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
 
-        uri = intent.data!!
+        photoUri = intent.data!!
 
         setupWindow()
         createUI()
@@ -88,6 +94,13 @@ class BlurActivity : AppCompatActivity()
             Layout.MATCH_PARENT, Layout.WRAP_CONTENT,
             Gravity.BOTTOM
         ))
+
+        createLoadingText()
+        rootLayout.addView(loadingText, Layout.frame(
+            Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
+            Gravity.CENTER,
+            0, 0, 0, Utils.dp(40)
+        ))
     }
 
     private fun createRootLayout()
@@ -104,10 +117,35 @@ class BlurActivity : AppCompatActivity()
         }
 
         Glide.with(this)
-            .load(uri)
+            .load(photoUri)
             .transform( BlurTransformation(currentBlur) )
             .transition( DrawableTransitionOptions.withCrossFade(100) )
             .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    return false
+                }
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+
+                    resource?.let {
+                        photoBitmap = it.toBitmap()
+                    }
+
+                    return false
+                }
+
+            })
             .into(photoView)
     }
 
@@ -132,6 +170,19 @@ class BlurActivity : AppCompatActivity()
         }
     }
 
+    private fun createLoadingText()
+    {
+        loadingText = TextView(this).apply {
+            setTextColor( Theme.WHITE )
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20F)
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
+
+            text = Locale.string(R.string.blurring)
+
+            alpha = 0F
+        }
+    }
+
     private fun updatePhotoDim()
     {
         photoView.apply {
@@ -141,37 +192,30 @@ class BlurActivity : AppCompatActivity()
 
     private fun updatePhotoBlur()
     {
-        Glide.with(photoView)
-            .load(uri)
-            .transform( BlurTransformation(currentBlur) )
-            .transition( DrawableTransitionOptions.withCrossFade(100) )
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .listener(object : RequestListener<Drawable?> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<Drawable?>?,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    //
-                    return false
+        ValueAnimator.ofFloat(1F, 0F).apply {
+            duration = 1000L
+            repeatCount = 1
+            repeatMode = ValueAnimator.REVERSE
+
+            addUpdateListener {
+                val a = it.animatedValue as Float
+                photoView.alpha = a
+
+                println(it.animatedFraction)
+
+                if (a == 0F)
+                {
+                    println("DUDE!")
+                    val blurBitmap = fastblur(photoBitmap, currentBlur)
+                    val blurDrawable = BitmapDrawable(resources, blurBitmap).apply {
+                        colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
+                    }
+                    photoView.setImageDrawable(blurDrawable)
                 }
+            }
 
-                override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
-                    target: Target<Drawable?>?,
-                    dataSource: DataSource?,
-                    isFirstResource: Boolean
-                ): Boolean {
-
-                    resource?.colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
-
-                    return false
-                }
-
-            })
-            .into(photoView)
+            start()
+        }
     }
 
     private fun savePhoto()

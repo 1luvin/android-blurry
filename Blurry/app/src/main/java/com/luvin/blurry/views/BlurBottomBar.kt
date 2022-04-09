@@ -196,10 +196,10 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     private fun createBlurSliderView()
     {
         val slider = Slider(context).apply {
-            valueFrom = 10F
-            valueTo = 50F
+            valueFrom = 5F
+            valueTo = 25F
 
-            value = 20F
+            value = 5F
 
             addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
                 @SuppressLint("RestrictedApi")
