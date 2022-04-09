@@ -1,5 +1,6 @@
 package com.luvin.blurry
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
@@ -8,13 +9,15 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -28,6 +31,7 @@ import com.luvin.blurry.utils.Utils
 import com.luvin.blurry.viewmodels.BlurViewModel
 import com.luvin.blurry.views.BlurBottomBar
 import jp.wasabeef.glide.transformations.BlurTransformation
+import java.io.File
 
 class BlurActivity : AppCompatActivity()
 {
@@ -54,8 +58,15 @@ class BlurActivity : AppCompatActivity()
 
     private fun setupWindow()
     {
-        window.statusBarColor = Theme.color(R.color.black)
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { view, windowInsets ->
+            val insets = windowInsets.getInsets( WindowInsetsCompat.Type.systemBars() )
+
+            rootLayout.updatePadding(0, insets.top, 0, insets.bottom)
+
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private fun createUI()
@@ -175,6 +186,14 @@ class BlurActivity : AppCompatActivity()
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
                 fos?.close()
             }
+        }
+        else
+        {
+            val root = Environment.getExternalStorageDirectory()
+            val file = File("${root.absolutePath}/Pictures/Blurry/${viewModel.generatePhotoFileName()}").apply {
+                createNewFile()
+            }
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, file.outputStream())
         }
     }
 }

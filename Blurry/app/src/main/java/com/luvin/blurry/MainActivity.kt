@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     {
         super.onCreate(savedInstanceState)
 
-        createUI()
         setupWindow()
+        createUI()
     }
 
     /*
@@ -54,14 +54,23 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
 
     private fun setupWindow()
     {
-        window.statusBarColor = Color.TRANSPARENT
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
         ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { view, windowInsets ->
             val insets = windowInsets.getInsets( WindowInsetsCompat.Type.navigationBars() )
-            rootLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = insets.bottom
+
+            if (this::choosePhotoButton.isInitialized)
+            {
+                choosePhotoButton.updateLayoutParams<FrameLayout.LayoutParams> {
+                    setMargins(
+                        Utils.dp(50),
+                        0,
+                        Utils.dp(50),
+                        Utils.dp(50) + insets.bottom
+                    )
+                }
             }
+
             WindowInsetsCompat.CONSUMED
         }
     }
@@ -88,8 +97,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
         createChoosePhotoButton()
         rootLayout.addView(choosePhotoButton, Layout.frame(
             Layout.MATCH_PARENT, Utils.dp(60),
-            Gravity.BOTTOM,
-            Utils.dp(50), 0, Utils.dp(50), Utils.dp(50)
+            Gravity.BOTTOM
         ))
     }
 
