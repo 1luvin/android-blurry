@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 
 
 fun fastblur(sentBitmap: Bitmap, radius: Int): Bitmap? {
-    val scale = 0.4F
+    val scale = 0.5F
     var sentBitmap = sentBitmap
     val width = Math.round(sentBitmap.width * scale)
     val height = Math.round(sentBitmap.height * scale)

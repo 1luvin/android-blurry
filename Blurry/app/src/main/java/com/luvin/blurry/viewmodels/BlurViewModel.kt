@@ -13,6 +13,7 @@ import java.util.*
 
 class BlurViewModel : ViewModel()
 {
+
     fun generatePhotoFileName() : String
     {
         val dateString = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())

@@ -3,6 +3,7 @@ package com.luvin.blurry
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -11,7 +12,6 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.Gravity
-import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.core.graphics.drawable.toBitmap
@@ -22,11 +22,12 @@ import com.luvin.blurry.utils.*
 import com.luvin.blurry.viewmodels.BlurViewModel
 import com.luvin.blurry.views.BlurBottomBar
 import java.io.File
+import java.lang.Exception
 
 class BlurActivity : AppCompatActivity()
 {
     private val viewModel: BlurViewModel by viewModels()
-    private lateinit var imageLoader: ImageLoader
+    private val imageLoader = MainApplication.imageLoader
 
     private lateinit var rootLayout: FrameLayout
     private lateinit var photoSwitcher: ImageSwitcher
@@ -44,7 +45,6 @@ class BlurActivity : AppCompatActivity()
     {
         super.onCreate(savedInstanceState)
 
-        imageLoader = ImageLoader(this)
         photoUri = intent.data!!
 
         setupWindow()
@@ -184,16 +184,35 @@ class BlurActivity : AppCompatActivity()
                 val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, viewModel.generatePhotoContentValues())
                 val fos = imageUri?.let { resolver.openOutputStream(it) }
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                fos?.close()
+                fos?.apply {
+                    flush()
+                    close()
+                }
             }
         }
         else
         {
             val root = Environment.getExternalStorageDirectory()
-            val file = File("${root.absolutePath}/Pictures/Blurry/${viewModel.generatePhotoFileName()}").apply {
-                createNewFile()
+            val blurryPath = "${root.absolutePath}/Pictures/Blurry/"
+            val blurryDir = File(blurryPath)
+            if ( ! blurryDir.exists() ) blurryDir.mkdirs()
+
+            val photoName = viewModel.generatePhotoFileName()
+            val photoFile = File(blurryDir, photoName)
+            if ( photoFile.exists() ) photoFile.delete()
+
+            try {
+                val out = photoFile.outputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                out.apply {
+                    flush()
+                    close()
+                }
+
+                MediaScannerConnection.scanFile(this, arrayOf(photoFile.toString()), null) { _, _ ->  }
+            } catch (e: Exception) {
+                //
             }
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, file.outputStream())
         }
     }
 }

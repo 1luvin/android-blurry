@@ -197,7 +197,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     private fun createBlurSliderView()
     {
         val slider = Slider(context).apply {
-            valueFrom = 5F
+            valueFrom = 1F
             valueTo = 30F
 
             value = 5F

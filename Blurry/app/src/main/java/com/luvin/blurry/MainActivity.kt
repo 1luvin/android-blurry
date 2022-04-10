@@ -2,7 +2,11 @@ package com.luvin.blurry
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -14,14 +18,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.*
+import coil.request.ImageRequest
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.luvin.blurry.utils.Layout
-import com.luvin.blurry.utils.Locale
-import com.luvin.blurry.utils.Theme
-import com.luvin.blurry.utils.Utils
+import com.luvin.blurry.utils.*
 import com.luvin.blurry.viewmodels.MainViewModel
 import com.luvin.blurry.views.InstantPress
 import jp.wasabeef.glide.transformations.ColorFilterTransformation
@@ -30,6 +33,7 @@ import pub.devrel.easypermissions.EasyPermissions
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
 {
     private val vm: MainViewModel by viewModels()
+    private val imageLoader = MainApplication.imageLoader
 
     private lateinit var rootLayout: FrameLayout
     private lateinit var imageView: ImageView
@@ -110,12 +114,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
             scaleType = ImageView.ScaleType.CENTER_CROP
         }
 
-        Glide.with(this)
-            .load( vm.randomPhotoUrl() )
-            .transform( ColorFilterTransformation( Theme.alphaColor(Theme.BLACK, 0.5F) ) )
-            .transition( DrawableTransitionOptions.withCrossFade(150) )
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .into(imageView)
+        val request = ImageRequest.Builder(this)
+            .data( vm.randomPhotoUrl())
+            .target {
+                val bitmap = it.toBitmap().copy(Bitmap.Config.ARGB_8888, true)
+                val drawable = BitmapDrawable(resources, fastblur(bitmap, 5)).apply {
+                    colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, 0.5F), PorterDuff.Mode.SRC_ATOP)
+                }
+                imageView.setImageDrawable(drawable)
+            }
+            .build()
+        imageLoader.enqueue(request)
     }
 
     private fun createBlurryTextView()
