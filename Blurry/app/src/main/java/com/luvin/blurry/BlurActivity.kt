@@ -1,13 +1,6 @@
 package com.luvin.blurry
 
-import android.animation.AnimatorListenerAdapter
-import android.animation.PropertyValuesHolder
-import android.animation.ValueAnimator
-import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
-import android.graphics.Typeface
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -18,36 +11,31 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.Gravity
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.TextView
+import android.view.ViewGroup
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.*
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.luvin.blurry.utils.*
 import com.luvin.blurry.viewmodels.BlurViewModel
 import com.luvin.blurry.views.BlurBottomBar
-import jp.wasabeef.glide.transformations.BlurTransformation
 import java.io.File
 
 class BlurActivity : AppCompatActivity()
 {
     private val viewModel: BlurViewModel by viewModels()
+    private lateinit var imageLoader: ImageLoader
 
     private lateinit var rootLayout: FrameLayout
-    private lateinit var photoView: ImageView
+    private lateinit var photoSwitcher: ImageSwitcher
     private lateinit var bottomBar: BlurBottomBar
     private lateinit var loadingText: TextView
 
     private lateinit var photoUri: Uri
     private lateinit var photoBitmap: Bitmap
+    private lateinit var photoDrawable: Drawable
 
     private var currentBlur: Int = 5
     private var currentDim: Float = 0F
@@ -56,6 +44,7 @@ class BlurActivity : AppCompatActivity()
     {
         super.onCreate(savedInstanceState)
 
+        imageLoader = ImageLoader(this)
         photoUri = intent.data!!
 
         setupWindow()
@@ -82,8 +71,8 @@ class BlurActivity : AppCompatActivity()
             Layout.MATCH_PARENT, Layout.MATCH_PARENT
         ))
 
-        createPhotoView()
-        rootLayout.addView(photoView, Layout.frame(
+        createPhotoSwitcher()
+        rootLayout.addView(photoSwitcher, Layout.frame(
             Layout.MATCH_PARENT, Layout.MATCH_PARENT,
             Gravity.START or Gravity.TOP,
             0, 0, 0, Utils.dp(80)
@@ -110,43 +99,31 @@ class BlurActivity : AppCompatActivity()
         }
     }
 
-    private fun createPhotoView()
+    private fun createPhotoSwitcher()
     {
-        photoView = ImageView(this).apply {
-            scaleType = ImageView.ScaleType.FIT_CENTER
+        photoSwitcher = ImageSwitcher(this).apply {
+            setFactory {
+                ImageView(this@BlurActivity).apply {
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    layoutParams = Layout.frame(
+                        Layout.MATCH_PARENT, Layout.MATCH_PARENT
+                    )
+                }
+            }
+
+            setInAnimation(this@BlurActivity, R.anim.`in`)
+            setOutAnimation(this@BlurActivity, R.anim.out)
         }
 
-        Glide.with(this)
-            .load(photoUri)
-            .transform( BlurTransformation(currentBlur) )
-            .transition( DrawableTransitionOptions.withCrossFade(100) )
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .listener(object : RequestListener<Drawable> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    return false
-                }
-                override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    dataSource: DataSource?,
-                    isFirstResource: Boolean
-                ): Boolean {
-
-                    resource?.let {
-                        photoBitmap = it.toBitmap()
-                    }
-
-                    return false
-                }
-
-            })
-            .into(photoView)
+        val request = ImageRequest.Builder(this)
+            .data(photoUri)
+            .target {
+                photoBitmap = it.toBitmap().copy(Bitmap.Config.ARGB_8888, true)
+                photoDrawable = BitmapDrawable(resources, fastblur(photoBitmap, currentBlur))
+                photoSwitcher.setImageDrawable(photoDrawable)
+            }
+            .build()
+        imageLoader.enqueue(request)
     }
 
     private fun createBottomBar()
@@ -185,42 +162,21 @@ class BlurActivity : AppCompatActivity()
 
     private fun updatePhotoDim()
     {
-        photoView.apply {
-            drawable?.colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
-        }
+        photoDrawable.colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
     }
 
     private fun updatePhotoBlur()
     {
-        ValueAnimator.ofFloat(1F, 0F).apply {
-            duration = 1000L
-            repeatCount = 1
-            repeatMode = ValueAnimator.REVERSE
-
-            addUpdateListener {
-                val a = it.animatedValue as Float
-                photoView.alpha = a
-
-                println(it.animatedFraction)
-
-                if (a == 0F)
-                {
-                    println("DUDE!")
-                    val blurBitmap = fastblur(photoBitmap, currentBlur)
-                    val blurDrawable = BitmapDrawable(resources, blurBitmap).apply {
-                        colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
-                    }
-                    photoView.setImageDrawable(blurDrawable)
-                }
-            }
-
-            start()
+        val blurBitmap = fastblur(photoBitmap, currentBlur)
+        photoDrawable = BitmapDrawable(resources, blurBitmap).apply {
+            colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
         }
+        photoSwitcher.setImageDrawable(photoDrawable)
     }
 
     private fun savePhoto()
     {
-        val bitmap = photoView.drawable.toBitmap()
+        val bitmap = photoDrawable.asBitmap()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         {

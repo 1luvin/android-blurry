@@ -2,15 +2,12 @@ package com.luvin.blurry
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -27,7 +24,6 @@ import com.luvin.blurry.utils.Theme
 import com.luvin.blurry.utils.Utils
 import com.luvin.blurry.viewmodels.MainViewModel
 import com.luvin.blurry.views.InstantPress
-import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.ColorFilterTransformation
 import pub.devrel.easypermissions.EasyPermissions
 

@@ -24,6 +24,7 @@ import com.luvin.blurry.utils.Layout
 import com.luvin.blurry.utils.Locale
 import com.luvin.blurry.utils.Theme
 import com.luvin.blurry.utils.Utils
+import com.luvin.blurry.viewmodels.BlurViewModel
 
 class BlurBottomBar(context: Context) : FrameLayout(context)
 {
@@ -197,7 +198,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     {
         val slider = Slider(context).apply {
             valueFrom = 5F
-            valueTo = 25F
+            valueTo = 30F
 
             value = 5F
 
