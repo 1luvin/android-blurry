@@ -132,7 +132,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             itemName = Locale.string(R.string.close)
             setItemIcon( Theme.drawable(R.drawable.close) )
 
-            color = Theme.color(R.color.red)
+            color = Theme.red
 
             setOnClickListener {
                 closeListener?.invoke()
@@ -143,6 +143,8 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             itemName = Locale.string(R.string.blur)
             setItemIcon( Theme.drawable(R.drawable.blur) )
 
+            color = Theme.white
+
             setOnClickListener {
                 navigate(itemsLayout, blurSliderView)
             }
@@ -151,6 +153,8 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         val dimItem = ItemView().apply {
             itemName = Locale.string(R.string.dim)
             setItemIcon( Theme.drawable(R.drawable.dim) )
+
+            color = Theme.white
 
             setOnClickListener {
                 navigate(itemsLayout, dimSliderView)
@@ -161,7 +165,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             itemName = Locale.string(R.string.save)
             setItemIcon( Theme.drawable(R.drawable.done) )
 
-            color = Theme.color(R.color.main)
+            color = Theme.blue
 
             setOnClickListener {
                 saveListener?.invoke()
@@ -320,12 +324,12 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         {
             slider.apply {
                 trackHeight = Utils.dp(3)
-                trackTintList = ColorStateList.valueOf( Theme.color(R.color.gray) )
-                trackActiveTintList = ColorStateList.valueOf( Theme.color(R.color.white) )
+                trackTintList = ColorStateList.valueOf( Theme.gray )
+                trackActiveTintList = ColorStateList.valueOf( Theme.white )
 
                 thumbRadius = Utils.dp(9)
-                thumbTintList = ColorStateList.valueOf( Theme.color(R.color.white) )
-                haloTintList = ColorStateList.valueOf( Theme.alphaColor(Theme.color(R.color.white), 0.24F) )
+                thumbTintList = ColorStateList.valueOf( Theme.white )
+                haloTintList = ColorStateList.valueOf( Theme.alphaColor(Theme.white, 0.24F) )
 
                 labelBehavior = LabelFormatter.LABEL_GONE
             }
@@ -339,7 +343,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 setPadding(0, 0, Utils.dp(20), 0)
                 gravity = Gravity.CENTER_VERTICAL
 
-                setTextColor( Theme.color(R.color.main) )
+                setTextColor( Theme.blue )
                 setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18F)
 
                 isAllCaps = true
@@ -351,7 +355,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 }
             }
             addView(doneTextView, Layout.frame(
-                Layout.MATCH_PARENT, Layout.MATCH_PARENT,
+                Layout.WRAP_CONTENT, Layout.MATCH_PARENT,
                 Gravity.END
             ))
         }

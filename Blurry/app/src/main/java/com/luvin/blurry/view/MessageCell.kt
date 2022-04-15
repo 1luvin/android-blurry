@@ -10,39 +10,40 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.luvin.blurry.R
 import com.luvin.blurry.util.Layout
+import com.luvin.blurry.util.Locale
 import com.luvin.blurry.util.Theme
 import com.luvin.blurry.util.Utils
 
 class MessageCell(context: Context) : FrameLayout(context)
 {
-    private var doneView: ImageView
-    private var messageView: TextView
+    private var imageView: ImageView
+    private var textView: TextView
 
     init
     {
         setPadding(Utils.dp(20), 0, Utils.dp(20), 0)
         background = Theme.rect(
-            R.color.main,
+            Theme.blue,
             FloatArray(4).apply {
                 fill( Utils.dp(7F) )
             }
         )
 
-        doneView = ImageView(context).apply {
+        imageView = ImageView(context).apply {
             scaleType = ImageView.ScaleType.CENTER
 
             setImageDrawable( Theme.drawable(R.drawable.done_bold).apply {
                 setTint( Theme.white )
             } )
         }
-        addView(doneView, Layout.frame(
+        addView(imageView, Layout.frame(
             Utils.dp(24), Utils.dp(24),
             Gravity.START or Gravity.CENTER_VERTICAL
         ))
 
-        messageView = TextView(context).apply {
+        textView = TextView(context).apply {
             setTextColor( Theme.white )
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16.5F)
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17F)
             typeface = Typeface.DEFAULT_BOLD
 
             setLines(1)
@@ -50,9 +51,9 @@ class MessageCell(context: Context) : FrameLayout(context)
             isSingleLine = true
             ellipsize = TextUtils.TruncateAt.END
 
-            text = "Saved"
+            text = Locale.string(R.string.saved)
         }
-        addView(messageView, Layout.frame(
+        addView(textView, Layout.frame(
             Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
             Gravity.START or Gravity.CENTER_VERTICAL,
             Utils.dp(24 + 15), 0, 0, 0
@@ -66,16 +67,17 @@ class MessageCell(context: Context) : FrameLayout(context)
             MeasureSpec.makeMeasureSpec( Utils.dp(56), MeasureSpec.EXACTLY )
         )
 
-        doneView.measure(0, 0)
+        imageView.measure(0, 0)
 
-        val availableWidth = measuredWidth - (paddingLeft + doneView.measuredWidth + Utils.dp(15) + paddingRight)
+        val availableWidth = measuredWidth - (paddingLeft + imageView.measuredWidth + Utils.dp(15) + paddingRight)
 
-        messageView.measure(
+        textView.measure(
             MeasureSpec.makeMeasureSpec( availableWidth, MeasureSpec.AT_MOST ),
             0
         )
 
     }
+
 }
 
 

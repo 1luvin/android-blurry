@@ -1,7 +1,9 @@
 package com.luvin.blurry
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.Typeface
@@ -15,13 +17,14 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.*
+import coil.load
 import coil.request.ImageRequest
 import com.luvin.blurry.util.*
 import com.luvin.blurry.view.InstantPress
-import pub.devrel.easypermissions.EasyPermissions
 
-class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
+class MainActivity : AppCompatActivity()
 {
     private val imageLoader = App.imageLoader
 
@@ -94,7 +97,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     private fun createRootLayout()
     {
         rootLayout = FrameLayout(this).apply {
-            setBackgroundColor( Theme.color(R.color.black) )
+            setBackgroundColor( Theme.black )
         }
     }
 
@@ -102,6 +105,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     {
         imageView = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
+
+            alpha = 0F
         }
 
         val request = ImageRequest.Builder(this)
@@ -111,8 +116,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
                     colorFilter = PorterDuffColorFilter( Theme.alphaColor(Theme.black, 0.5F), PorterDuff.Mode.SRC_ATOP )
                 }
                 imageView.setImageDrawable(it)
+
+                ValueAnimator.ofFloat(0F, 1F).apply {
+                    duration = 200
+
+                    addUpdateListener {
+                        imageView.alpha = this.animatedValue as Float
+                    }
+
+                    start()
+                }
             }
-            .crossfade(true)
             .build()
         imageLoader.enqueue(request)
     }
@@ -133,13 +147,15 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
         choosePhotoButton = Button(this).apply {
             setOnTouchListener( InstantPress() )
 
-            background = Theme.rect( R.color.main, radii = FloatArray(4).apply {
+            background = Theme.rect( Theme.white, radii = FloatArray(4).apply {
                 fill( Utils.dp(10F) )
             } )
 
+            isAllCaps = false
+
             text = Locale.string( R.string.choose_photo )
-            setTextColor( Theme.white )
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17F)
+            setTextColor( Theme.black )
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 19F)
             typeface = Typeface.DEFAULT_BOLD
 
             setOnClickListener {
@@ -158,17 +174,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
-        if (EasyPermissions.hasPermissions(this, *perms))
+
+        val perm: String? = perms.find {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_DENIED
+        }
+
+        if (perm != null)
         {
-            selectPhoto()
+            requestPermissions(perms, 1337)
         }
         else
         {
-            EasyPermissions.requestPermissions(
-                this,
-                Locale.string(R.string.rationale_storage),
-                1337,
-                *perms)
+            choosePhoto()
         }
     }
 
@@ -176,31 +193,36 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks
     {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-    }
+        when (requestCode)
+        {
+            1337 ->
+            {
+                val found: Int? = grantResults.find {
+                    it == PackageManager.PERMISSION_DENIED
+                }
 
-    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>)
-    {
-        if (perms.size < 2) finish()
-
-        selectPhoto()
-    }
-
-    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>)
-    {
-        finish()
+                if (found == null)
+                {
+                    choosePhoto()
+                }
+                else
+                {
+                    finish()
+                }
+            }
+        }
     }
 
     /*
        PHOTO
      */
 
-    private val selectPhoto = registerForActivityResult( ActivityResultContracts.GetContent() ) { uri: Uri? ->
+    private val choosePhoto = registerForActivityResult( ActivityResultContracts.GetContent() ) { uri: Uri? ->
         uri?.let {
             startBlurActivity(uri)
         }
     }
-    private fun selectPhoto() = selectPhoto.launch("image/*")
+    private fun choosePhoto() = choosePhoto.launch("image/*")
 
     private fun startBlurActivity(data: Uri)
     {

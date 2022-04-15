@@ -27,11 +27,6 @@ class Layout
             return FrameLayout.LayoutParams(width, height)
         }
 
-        fun linear(width: Int, height: Int) : LinearLayout.LayoutParams
-        {
-            return LinearLayout.LayoutParams(width, height)
-        }
-
         fun linear(width: Int, height: Int, weight: Float) : LinearLayout.LayoutParams
         {
             return LinearLayout.LayoutParams(width, height, weight)

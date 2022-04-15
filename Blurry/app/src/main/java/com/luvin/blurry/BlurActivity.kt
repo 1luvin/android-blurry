@@ -127,10 +127,12 @@ class BlurActivity : AppCompatActivity()
                 finish()
             }
             onBlurChanged {
+                if (currentBlur == it) return@onBlurChanged
                 currentBlur = it
                 updatePhotoBlur()
             }
             onDimChanged {
+                if (currentDim == it) return@onDimChanged
                 currentDim = it
                 updatePhotoDim()
             }
@@ -162,50 +164,47 @@ class BlurActivity : AppCompatActivity()
     {
         val bitmap = photoDrawable.asBitmap()
         val photoName = Utils.newPhotoFileName()
-        val photoFile: File
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-//        {
-//            contentResolver?.also { resolver ->
-//                val contentValues = ContentValues().apply {
-//                    put(MediaStore.MediaColumns.DISPLAY_NAME, photoName)
-//                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-//                    put(MediaStore.MediaColumns.RELATIVE_PATH, App.appDirPath())
-//                }
-//                val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-//                val fos = imageUri?.let { resolver.openOutputStream(it) }
-//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-//                fos?.apply {
-//                    flush()
-//                    close()
-//                }
-//            }
-//
-//            photoFile = File( App.appDirPath(), photoName )
-//        }
-//        else
-//        {
-//            val root = Environment.getExternalStorageDirectory()
-//            val blurryPath = "${root.absolutePath}/Pictures/Blurry/"
-//            val blurryDir = File(blurryPath)
-//            if ( ! blurryDir.exists() ) blurryDir.mkdirs()
-//
-//            photoFile = File(blurryDir, photoName)
-//            if ( photoFile.exists() ) photoFile.delete()
-//
-//            try {
-//                val out = photoFile.outputStream()
-//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-//                out.apply {
-//                    flush()
-//                    close()
-//                }
-//            } catch (e: Exception) {
-//                //
-//            }
-//
-//            MediaScannerConnection.scanFile(this, arrayOf(photoFile.toString()), null) { _, _ ->  }
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        {
+            contentResolver?.also { resolver ->
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, photoName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, App.appDirPath())
+                }
+                val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                val fos = imageUri?.let { resolver.openOutputStream(it) }
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                fos?.apply {
+                    flush()
+                    close()
+                }
+            }
+        }
+        else
+        {
+            val root = Environment.getExternalStorageDirectory()
+            val blurryPath = "${root.absolutePath}/Pictures/Blurry/"
+            val blurryDir = File(blurryPath)
+            if ( ! blurryDir.exists() ) blurryDir.mkdirs()
+
+            val photoFile = File(blurryDir, photoName)
+            if ( photoFile.exists() ) photoFile.delete()
+
+            try {
+                val out = photoFile.outputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                out.apply {
+                    flush()
+                    close()
+                }
+            } catch (e: Exception) {
+                //
+            }
+
+            MediaScannerConnection.scanFile(this, arrayOf(photoFile.toString()), null) { _, _ ->  }
+        }
 
         showDownloadedMessage()
     }
@@ -215,7 +214,7 @@ class BlurActivity : AppCompatActivity()
         val snackbar = Snackbar.make(rootLayout, "", 1700).apply {
             view.setBackgroundColor( Color.TRANSPARENT )
         }
-        val snackbarLayout = (snackbar.view as Snackbar.SnackbarLayout)
+        val snackbarLayout = snackbar.view as Snackbar.SnackbarLayout
         snackbarLayout.addView( MessageCell(this), 0 )
         snackbar.show()
     }
