@@ -1,7 +1,6 @@
-package com.luvin.blurry.utils
+package com.luvin.blurry.util
 
-import androidx.core.content.ContextCompat
-import com.luvin.blurry.MainApplication
+import com.luvin.blurry.App
 import java.lang.Exception
 
 class Locale
@@ -11,7 +10,7 @@ class Locale
         fun string(stringKey: Int) : String
         {
             return try {
-                MainApplication.appContext().resources.getString(stringKey)
+                App.appContext().resources.getString(stringKey)
             } catch (e: Exception) {
                 "bad_string_key"
             }

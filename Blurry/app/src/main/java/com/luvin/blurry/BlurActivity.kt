@@ -1,5 +1,7 @@
 package com.luvin.blurry
 
+import android.content.ContentValues
+import android.content.Intent
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -10,29 +12,28 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.widget.*
-import androidx.activity.viewModels
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.*
-import coil.ImageLoader
 import coil.request.ImageRequest
-import com.luvin.blurry.utils.*
-import com.luvin.blurry.viewmodels.BlurViewModel
-import com.luvin.blurry.views.BlurBottomBar
+import com.google.android.material.snackbar.Snackbar
+import com.luvin.blurry.util.*
+import com.luvin.blurry.view.BlurBottomBar
+import com.luvin.blurry.view.MessageCell
+import kotlinx.coroutines.*
 import java.io.File
 import java.lang.Exception
 
 class BlurActivity : AppCompatActivity()
 {
-    private val viewModel: BlurViewModel by viewModels()
-    private val imageLoader = MainApplication.imageLoader
+    private val imageLoader = App.imageLoader
 
     private lateinit var rootLayout: FrameLayout
     private lateinit var photoSwitcher: ImageSwitcher
     private lateinit var bottomBar: BlurBottomBar
-    private lateinit var loadingText: TextView
 
     private lateinit var photoUri: Uri
     private lateinit var photoBitmap: Bitmap
@@ -75,7 +76,7 @@ class BlurActivity : AppCompatActivity()
         rootLayout.addView(photoSwitcher, Layout.frame(
             Layout.MATCH_PARENT, Layout.MATCH_PARENT,
             Gravity.START or Gravity.TOP,
-            0, 0, 0, Utils.dp(80)
+            0, 0, 0, Utils.dp(70)
         ))
 
         createBottomBar()
@@ -83,19 +84,12 @@ class BlurActivity : AppCompatActivity()
             Layout.MATCH_PARENT, Layout.WRAP_CONTENT,
             Gravity.BOTTOM
         ))
-
-        createLoadingText()
-        rootLayout.addView(loadingText, Layout.frame(
-            Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
-            Gravity.CENTER,
-            0, 0, 0, Utils.dp(40)
-        ))
     }
 
     private fun createRootLayout()
     {
         rootLayout = FrameLayout(this).apply {
-            setBackgroundColor( Theme.BLACK )
+            setBackgroundColor( Theme.black )
         }
     }
 
@@ -142,78 +136,88 @@ class BlurActivity : AppCompatActivity()
             }
             onSave {
                 savePhoto()
-                finish()
             }
-        }
-    }
-
-    private fun createLoadingText()
-    {
-        loadingText = TextView(this).apply {
-            setTextColor( Theme.WHITE )
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20F)
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
-
-            text = Locale.string(R.string.blurring)
-
-            alpha = 0F
         }
     }
 
     private fun updatePhotoDim()
     {
-        photoDrawable.colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
+        photoDrawable.colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.black, currentDim), PorterDuff.Mode.SRC_ATOP)
     }
 
     private fun updatePhotoBlur()
     {
-        val blurBitmap = fastblur(photoBitmap, currentBlur)
-        photoDrawable = BitmapDrawable(resources, blurBitmap).apply {
-            colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.BLACK, currentDim), PorterDuff.Mode.SRC_ATOP)
+        CoroutineScope(Dispatchers.IO).launch {
+            val blurBitmap = fastblur(photoBitmap, currentBlur)
+            photoDrawable = BitmapDrawable( resources, blurBitmap )
+            updatePhotoDim()
+
+            withContext(Dispatchers.Main) {
+                photoSwitcher.setImageDrawable(photoDrawable)
+            }
         }
-        photoSwitcher.setImageDrawable(photoDrawable)
     }
 
     private fun savePhoto()
     {
         val bitmap = photoDrawable.asBitmap()
+        val photoName = Utils.newPhotoFileName()
+        val photoFile: File
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-        {
-            contentResolver?.also { resolver ->
-                val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, viewModel.generatePhotoContentValues())
-                val fos = imageUri?.let { resolver.openOutputStream(it) }
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                fos?.apply {
-                    flush()
-                    close()
-                }
-            }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+//        {
+//            contentResolver?.also { resolver ->
+//                val contentValues = ContentValues().apply {
+//                    put(MediaStore.MediaColumns.DISPLAY_NAME, photoName)
+//                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+//                    put(MediaStore.MediaColumns.RELATIVE_PATH, App.appDirPath())
+//                }
+//                val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+//                val fos = imageUri?.let { resolver.openOutputStream(it) }
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+//                fos?.apply {
+//                    flush()
+//                    close()
+//                }
+//            }
+//
+//            photoFile = File( App.appDirPath(), photoName )
+//        }
+//        else
+//        {
+//            val root = Environment.getExternalStorageDirectory()
+//            val blurryPath = "${root.absolutePath}/Pictures/Blurry/"
+//            val blurryDir = File(blurryPath)
+//            if ( ! blurryDir.exists() ) blurryDir.mkdirs()
+//
+//            photoFile = File(blurryDir, photoName)
+//            if ( photoFile.exists() ) photoFile.delete()
+//
+//            try {
+//                val out = photoFile.outputStream()
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+//                out.apply {
+//                    flush()
+//                    close()
+//                }
+//            } catch (e: Exception) {
+//                //
+//            }
+//
+//            MediaScannerConnection.scanFile(this, arrayOf(photoFile.toString()), null) { _, _ ->  }
+//        }
+
+        showDownloadedMessage()
+    }
+
+    private fun showDownloadedMessage()
+    {
+        val snackbar = Snackbar.make(rootLayout, "", 1700).apply {
+            view.setBackgroundColor( Color.TRANSPARENT )
         }
-        else
-        {
-            val root = Environment.getExternalStorageDirectory()
-            val blurryPath = "${root.absolutePath}/Pictures/Blurry/"
-            val blurryDir = File(blurryPath)
-            if ( ! blurryDir.exists() ) blurryDir.mkdirs()
-
-            val photoName = viewModel.generatePhotoFileName()
-            val photoFile = File(blurryDir, photoName)
-            if ( photoFile.exists() ) photoFile.delete()
-
-            try {
-                val out = photoFile.outputStream()
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                out.apply {
-                    flush()
-                    close()
-                }
-
-                MediaScannerConnection.scanFile(this, arrayOf(photoFile.toString()), null) { _, _ ->  }
-            } catch (e: Exception) {
-                //
-            }
-        }
+        val snackbarLayout = (snackbar.view as Snackbar.SnackbarLayout)
+        snackbarLayout.addView( MessageCell(this), 0 )
+        snackbar.show()
     }
 }
 

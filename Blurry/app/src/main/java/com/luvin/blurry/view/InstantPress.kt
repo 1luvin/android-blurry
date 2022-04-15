@@ -1,4 +1,4 @@
-package com.luvin.blurry.views
+package com.luvin.blurry.view
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator

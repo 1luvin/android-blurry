@@ -1,7 +1,6 @@
-package com.luvin.blurry.utils
+package com.luvin.blurry.util
 
 import android.graphics.Bitmap
-
 
 fun fastblur(sentBitmap: Bitmap, radius: Int): Bitmap? {
     val scale = 0.5F

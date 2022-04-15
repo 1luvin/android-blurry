@@ -4,17 +4,18 @@ import android.app.Application
 import android.content.Context
 import android.os.Environment
 import coil.ImageLoader
-import com.luvin.blurry.utils.Locale
+import coil.request.CachePolicy
+import com.luvin.blurry.util.Locale
 
-class MainApplication : Application()
+class App : Application()
 {
     companion object
     {
         @Volatile
-        private var INSTANCE: MainApplication? = null
+        private var INSTANCE: App? = null
         fun instance() =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: MainApplication().also {
+                INSTANCE ?: App().also {
                     INSTANCE = it
                 }
             }
@@ -43,7 +44,10 @@ class MainApplication : Application()
 
     private fun createImageLoader()
     {
-        imageLoader = ImageLoader( appContext() )
+        Companion.imageLoader = ImageLoader.Builder(appContext())
+            .diskCachePolicy(CachePolicy.DISABLED)
+            .memoryCachePolicy( CachePolicy.DISABLED )
+            .build()
     }
 }
 

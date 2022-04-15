@@ -1,13 +1,11 @@
-package com.luvin.blurry.utils
+package com.luvin.blurry.util
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.RectShape
 import android.graphics.drawable.shapes.RoundRectShape
-import androidx.annotation.IntegerRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import com.luvin.blurry.MainApplication
+import com.luvin.blurry.App
 import com.luvin.blurry.R
 import java.lang.Exception
 
@@ -15,14 +13,14 @@ class Theme
 {
     companion object
     {
-        const val WHITE = 0xFFFFFFFF.toInt()
-        const val BLACK = 0xFF000000.toInt()
+        val white get() = color(R.color.white)
+        val black get() = color(R.color.black)
 
         fun color(colorKey: Int) : Int
         {
             return try {
                 ContextCompat.getColor(
-                    MainApplication.appContext(),
+                    App.appContext(),
                     colorKey
                 )
             } catch (e: Exception) {
@@ -38,7 +36,7 @@ class Theme
         fun drawable(drawableKey: Int) : Drawable
         {
             return ContextCompat.getDrawable(
-                MainApplication.appContext(),
+                App.appContext(),
                 drawableKey
             )!!
         }

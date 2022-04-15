@@ -1,4 +1,4 @@
-package com.luvin.blurry.utils
+package com.luvin.blurry.util
 
 import android.widget.FrameLayout
 import android.widget.LinearLayout

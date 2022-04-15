@@ -1,4 +1,4 @@
-package com.luvin.blurry.views
+package com.luvin.blurry.view
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -6,25 +6,19 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.ScaleDrawable
-import android.graphics.drawable.VectorDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.*
-import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.slider.LabelFormatter
 import com.google.android.material.slider.Slider
 import com.luvin.blurry.R
-import com.luvin.blurry.utils.Layout
-import com.luvin.blurry.utils.Locale
-import com.luvin.blurry.utils.Theme
-import com.luvin.blurry.utils.Utils
-import com.luvin.blurry.viewmodels.BlurViewModel
+import com.luvin.blurry.util.Layout
+import com.luvin.blurry.util.Locale
+import com.luvin.blurry.util.Theme
+import com.luvin.blurry.util.Utils
 
 class BlurBottomBar(context: Context) : FrameLayout(context)
 {
@@ -78,7 +72,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     {
         super.onMeasure(
             MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY),
-            MeasureSpec.makeMeasureSpec(Utils.dp(80), MeasureSpec.EXACTLY)
+            MeasureSpec.makeMeasureSpec(Utils.dp(70), MeasureSpec.EXACTLY)
         )
     }
 
@@ -197,7 +191,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     private fun createBlurSliderView()
     {
         val slider = Slider(context).apply {
-            valueFrom = 1F
+            valueFrom = 5F
             valueTo = 30F
 
             value = 5F
@@ -257,7 +251,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 textView.text = itemName
             }
 
-        var color: Int = Theme.WHITE
+        var color: Int = Theme.white
             set(value) {
                 field = value
 
@@ -282,11 +276,11 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             addView(imageView, Layout.frame(
                 Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
                 Gravity.TOP or Gravity.CENTER_HORIZONTAL,
-                0, Utils.dp(15), 0, 0
+                0, Utils.dp(10), 0, 0
             ))
 
             textView = TextView(context).apply {
-                setTextColor( Theme.WHITE )
+                setTextColor( Theme.white )
                 setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17F)
 
                 setLines(1)
@@ -297,7 +291,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             addView(textView, Layout.frame(
                 Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
                 Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-                Utils.dp(10), 0, Utils.dp(10), Utils.dp(15)
+                Utils.dp(10), 0, Utils.dp(10), Utils.dp(12)
             ))
         }
 
