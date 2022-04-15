@@ -10,7 +10,7 @@
 .DS_Store
 /build
 /captures
+/icons
 .externalNativeBuild
 .cxx
 local.properties
-/icons
