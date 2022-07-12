@@ -19,31 +19,30 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.*
-import coil.load
 import coil.request.ImageRequest
 import com.luvin.blurry.util.*
 import com.luvin.blurry.view.InstantPress
 
 class MainActivity : AppCompatActivity()
 {
-    private val imageLoader = App.imageLoader
-
     private lateinit var rootLayout: FrameLayout
     private lateinit var imageView: ImageView
     private lateinit var blurryTextView: TextView
     private lateinit var choosePhotoButton: TextView
+
+    private val imageLoader = App.imageLoader
+    private val readWritePermissionsRequestCode: Int = 1337
+
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
 
         setupWindow()
-        createUI()
+        createView()
     }
 
-    /*
-        UI
-     */
+    // View
 
     private fun setupWindow()
     {
@@ -56,10 +55,10 @@ class MainActivity : AppCompatActivity()
             {
                 choosePhotoButton.updateLayoutParams<FrameLayout.LayoutParams> {
                     setMargins(
-                        Utils.dp(50),
+                        AndroidUtil.dp(50),
                         0,
-                        Utils.dp(50),
-                        Utils.dp(50) + insets.bottom
+                        AndroidUtil.dp(50),
+                        AndroidUtil.dp(50) + insets.bottom
                     )
                 }
             }
@@ -68,7 +67,7 @@ class MainActivity : AppCompatActivity()
         }
     }
 
-    private fun createUI()
+    private fun createView()
     {
         createRootLayout()
         setContentView(rootLayout, Layout.frame(
@@ -84,12 +83,12 @@ class MainActivity : AppCompatActivity()
         rootLayout.addView(blurryTextView, Layout.frame(
             Layout.MATCH_PARENT, Layout.MATCH_PARENT,
             Gravity.CENTER,
-            0, 0, 0, Utils.dp(200)
+            0, 0, 0, AndroidUtil.dp(200)
         ))
 
         createChoosePhotoButton()
         rootLayout.addView(choosePhotoButton, Layout.frame(
-            Layout.MATCH_PARENT, Utils.dp(60),
+            Layout.MATCH_PARENT, AndroidUtil.dp(60),
             Gravity.BOTTOM
         ))
     }
@@ -105,19 +104,22 @@ class MainActivity : AppCompatActivity()
     {
         imageView = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
-
-            alpha = 0F
+            alpha = 0f
         }
 
+        val url = PhotoUtil.randomBlurredPhotoUrl(200, 400, 10)
         val request = ImageRequest.Builder(this)
-            .data( Utils.randomPhotoUrl())
+            .data(url)
             .target {
                 it.apply {
-                    colorFilter = PorterDuffColorFilter( Theme.alphaColor(Theme.black, 0.5F), PorterDuff.Mode.SRC_ATOP )
+                    colorFilter = PorterDuffColorFilter(
+                        Theme.alphaColor(Theme.black, 0.5f),
+                        PorterDuff.Mode.SRC_ATOP
+                    )
                 }
                 imageView.setImageDrawable(it)
 
-                ValueAnimator.ofFloat(0F, 1F).apply {
+                ValueAnimator.ofFloat(0f, 1f).apply {
                     duration = 200
 
                     addUpdateListener {
@@ -134,11 +136,12 @@ class MainActivity : AppCompatActivity()
     private fun createBlurryTextView()
     {
         blurryTextView = TextView(this).apply {
-            text = Locale.string(R.string.app_name)
-            gravity = Gravity.CENTER
-            setTextColor( Theme.white )
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 70F)
+            setTextColor(Theme.white)
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 70f)
             typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+
+            text = Locale.string(R.string.app_name)
         }
     }
 
@@ -147,16 +150,17 @@ class MainActivity : AppCompatActivity()
         choosePhotoButton = Button(this).apply {
             setOnTouchListener( InstantPress() )
 
-            background = Theme.rect( Theme.white, radii = FloatArray(4).apply {
-                fill( Utils.dp(10F) )
-            } )
+            background = Theme.rect(
+                Theme.white,
+                radii = FloatArray(4) { 10f }
+            )
 
-            isAllCaps = false
-
-            text = Locale.string( R.string.choose_photo )
             setTextColor( Theme.black )
             setTextSize(TypedValue.COMPLEX_UNIT_DIP, 19F)
             typeface = Typeface.DEFAULT_BOLD
+            isAllCaps = false
+
+            text = Locale.string( R.string.choose_photo )
 
             setOnClickListener {
                 checkPermissions()
@@ -164,9 +168,7 @@ class MainActivity : AppCompatActivity()
         }
     }
 
-    /*
-        PERMISSIONS
-     */
+    // Permission
 
     private fun checkPermissions()
     {
@@ -179,12 +181,9 @@ class MainActivity : AppCompatActivity()
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_DENIED
         }
 
-        if (perm != null)
-        {
-            requestPermissions(perms, 1337)
-        }
-        else
-        {
+        if (perm != null) {
+            requestPermissions(perms, readWritePermissionsRequestCode)
+        } else {
             choosePhoto()
         }
     }
@@ -195,27 +194,22 @@ class MainActivity : AppCompatActivity()
 
         when (requestCode)
         {
-            1337 ->
+            readWritePermissionsRequestCode ->
             {
                 val found: Int? = grantResults.find {
                     it == PackageManager.PERMISSION_DENIED
                 }
 
-                if (found == null)
-                {
+                if (found == null) {
                     choosePhoto()
-                }
-                else
-                {
+                } else {
                     finish()
                 }
             }
         }
     }
 
-    /*
-       PHOTO
-     */
+    // Photo
 
     private val choosePhoto = registerForActivityResult( ActivityResultContracts.GetContent() ) { uri: Uri? ->
         uri?.let {
@@ -233,35 +227,3 @@ class MainActivity : AppCompatActivity()
         )
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//

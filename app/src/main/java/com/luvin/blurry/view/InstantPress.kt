@@ -1,6 +1,5 @@
 package com.luvin.blurry.view
 
-import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.graphics.Rect
 import android.view.MotionEvent
@@ -11,8 +10,8 @@ class InstantPress : View.OnTouchListener
     private var ofView: View? = null
 
     private val DURATION: Long = 100L
-    private val ALPHA_PRESSED: Float = 0.6F
-    private val SCALE_PRESSED: Float = 0.99F
+    private val ALPHA_PRESSED: Float = 0.6f
+    private val SCALE_PRESSED: Float = 0.99f
 
     private lateinit var alphaAnimator: ValueAnimator
     private lateinit var scaleAnimator: ValueAnimator
@@ -24,13 +23,13 @@ class InstantPress : View.OnTouchListener
 
         alphaAnimator.apply {
             cancel()
-            setFloatValues(ofView!!.alpha, ALPHA_PRESSED, 1F)
+            setFloatValues(ofView!!.alpha, ALPHA_PRESSED, 1f)
             start()
         }
 
         scaleAnimator.apply {
             cancel()
-            setFloatValues(ofView!!.scaleX, SCALE_PRESSED, 1F)
+            setFloatValues(ofView!!.scaleX, SCALE_PRESSED, 1f)
             start()
         }
     }
@@ -62,13 +61,14 @@ class InstantPress : View.OnTouchListener
                     setFloatValues(1F, SCALE_PRESSED)
                     start()
                 }
+
                 return true
             }
             MotionEvent.ACTION_UP ->
             {
                 cancelPress()
 
-                if (isUpInside(event)) {
+                if ( isUpInside(event) ) {
                     v.performClick()
                 }
 
@@ -77,16 +77,19 @@ class InstantPress : View.OnTouchListener
             MotionEvent.ACTION_CANCEL ->
             {
                 cancelPress()
+
                 return true
             }
             MotionEvent.ACTION_MOVE ->
             {
-                if ( ! isUpInside(event)) {
+                if ( ! isUpInside(event) ) {
                     cancelPress()
                 }
+
                 return true
             }
         }
+
         return false
     }
 
@@ -94,11 +97,9 @@ class InstantPress : View.OnTouchListener
     {
         alphaAnimator = ValueAnimator().apply {
             duration = DURATION
-            setEvaluator( ArgbEvaluator() )
 
             addUpdateListener {
-                val animatedAlpha = it.animatedValue as Float
-                ofView!!.alpha = animatedAlpha
+                ofView!!.alpha = it.animatedValue as Float
             }
         }
 
@@ -106,9 +107,9 @@ class InstantPress : View.OnTouchListener
             duration = DURATION
 
             addUpdateListener {
-                val animatedScale = it.animatedValue as Float
-                ofView!!.scaleX = animatedScale
-                ofView!!.scaleY = animatedScale
+                val scale = it.animatedValue as Float
+                ofView!!.scaleX = scale
+                ofView!!.scaleY = scale
             }
         }
     }
@@ -128,41 +129,3 @@ class InstantPress : View.OnTouchListener
         )
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//

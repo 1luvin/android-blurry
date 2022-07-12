@@ -12,42 +12,33 @@ class App : Application()
     companion object
     {
         @Volatile
-        private var INSTANCE: App? = null
+        private var Instance: App? = null
         fun instance() =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: App().also {
-                    INSTANCE = it
+            Instance ?: synchronized(this) {
+                Instance ?: App().also {
+                    Instance = it
                 }
             }
 
-        fun appContext() : Context
-        {
-            return instance().applicationContext
-        }
+        val appContext: Context get() = instance().applicationContext
 
         fun appDirPath() : String
         {
-            return "${Environment.DIRECTORY_PICTURES}/${Locale.string(R.string.app_name)}"
+            return "${Environment.DIRECTORY_PICTURES}/Blurry"
         }
 
-        lateinit var imageLoader: ImageLoader
-            private set
+        val imageLoader: ImageLoader by lazy {
+            ImageLoader.Builder(appContext)
+                .diskCachePolicy(CachePolicy.DISABLED)
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .build()
+        }
     }
 
     override fun onCreate()
     {
         super.onCreate()
-        INSTANCE = this
-
-        createImageLoader()
-    }
-
-    private fun createImageLoader()
-    {
-        Companion.imageLoader = ImageLoader.Builder(appContext())
-            .diskCachePolicy(CachePolicy.DISABLED)
-            .memoryCachePolicy( CachePolicy.DISABLED )
-            .build()
+        Instance = this
     }
 }
 

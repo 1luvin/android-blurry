@@ -12,51 +12,52 @@ import com.luvin.blurry.R
 import com.luvin.blurry.util.Layout
 import com.luvin.blurry.util.Locale
 import com.luvin.blurry.util.Theme
-import com.luvin.blurry.util.Utils
+import com.luvin.blurry.util.AndroidUtil
 
-class MessageCell(context: Context) : FrameLayout(context)
+class TextCell(
+    context: Context,
+    text: String,
+) : FrameLayout(context)
 {
     private var imageView: ImageView
     private var textView: TextView
 
+
     init
     {
-        setPadding(Utils.dp(20), 0, Utils.dp(20), 0)
+        setPadding( AndroidUtil.dp(20), 0, AndroidUtil.dp(20), 0 )
         background = Theme.rect(
             Theme.blue,
-            FloatArray(4).apply {
-                fill( Utils.dp(7F) )
-            }
+            radii = FloatArray(4) { 7f }
         )
 
         imageView = ImageView(context).apply {
             scaleType = ImageView.ScaleType.CENTER
 
-            setImageDrawable( Theme.drawable(R.drawable.done_bold).apply {
-                setTint( Theme.white )
-            } )
+            setImageDrawable(
+                Theme.drawable(R.drawable.done_bold).apply {
+                    setTint(Theme.white)
+                }
+            )
         }
         addView(imageView, Layout.frame(
-            Utils.dp(24), Utils.dp(24),
+            AndroidUtil.dp(24), AndroidUtil.dp(24),
             Gravity.START or Gravity.CENTER_VERTICAL
         ))
 
         textView = TextView(context).apply {
             setTextColor( Theme.white )
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17F)
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17f)
             typeface = Typeface.DEFAULT_BOLD
-
-            setLines(1)
-            maxLines = 1
             isSingleLine = true
             ellipsize = TextUtils.TruncateAt.END
 
-            text = Locale.string(R.string.saved)
+            this.text = text
         }
         addView(textView, Layout.frame(
             Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
             Gravity.START or Gravity.CENTER_VERTICAL,
-            Utils.dp(24 + 15), 0, 0, 0
+            AndroidUtil.dp(24 + 15), 0, 0, 0
         ))
     }
 
@@ -64,54 +65,16 @@ class MessageCell(context: Context) : FrameLayout(context)
     {
         super.onMeasure(
             MeasureSpec.makeMeasureSpec( MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY ),
-            MeasureSpec.makeMeasureSpec( Utils.dp(56), MeasureSpec.EXACTLY )
+            MeasureSpec.makeMeasureSpec( AndroidUtil.dp(56), MeasureSpec.EXACTLY )
         )
 
         imageView.measure(0, 0)
 
-        val availableWidth = measuredWidth - (paddingLeft + imageView.measuredWidth + Utils.dp(15) + paddingRight)
+        val availableWidth = measuredWidth - (paddingLeft + imageView.measuredWidth + AndroidUtil.dp(15) + paddingRight)
 
         textView.measure(
-            MeasureSpec.makeMeasureSpec( availableWidth, MeasureSpec.AT_MOST ),
+            MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST),
             0
         )
-
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//

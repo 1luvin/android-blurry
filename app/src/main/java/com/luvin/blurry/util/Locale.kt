@@ -6,6 +6,6 @@ class Locale
 {
     companion object
     {
-        fun string(stringKey: Int) = App.appContext().resources.getString(stringKey)
+        fun string(stringKey: Int) = App.appContext.resources.getString(stringKey)
     }
 }

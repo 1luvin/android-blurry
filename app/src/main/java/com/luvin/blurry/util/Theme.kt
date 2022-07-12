@@ -12,20 +12,27 @@ class Theme
 {
     companion object
     {
+        // Color
+
         val black get() = color(R.color.black)
         val white get() = color(R.color.white)
         val gray get() = color(R.color.gray)
         val red get() = color(R.color.red)
         val blue get() = color(R.color.blue)
 
-        private fun color(colorKey: Int) : Int = ContextCompat.getColor(App.appContext(), colorKey)
+        private fun color(colorKey: Int) : Int = ContextCompat.getColor(App.appContext, colorKey)
 
         fun alphaColor(color: Int, alpha: Float) : Int
         {
             return ColorUtils.setAlphaComponent( color, (255 * alpha).toInt())
         }
 
-        fun drawable(drawableKey: Int) : Drawable = ContextCompat.getDrawable(App.appContext(), drawableKey)!!
+        // Drawable
+
+        fun drawable(drawableKey: Int) : Drawable
+        {
+            return ContextCompat.getDrawable(App.appContext, drawableKey)!!
+        }
 
         fun rect(color: Int, radii: FloatArray? = null) : Drawable
         {
@@ -46,35 +53,3 @@ class Theme
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//

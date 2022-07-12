@@ -1,7 +1,6 @@
 package com.luvin.blurry
 
 import android.content.ContentValues
-import android.content.Intent
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -13,34 +12,31 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.view.Gravity
-import android.view.View
 import android.widget.*
-import androidx.core.content.FileProvider
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.*
 import coil.request.ImageRequest
 import com.google.android.material.snackbar.Snackbar
 import com.luvin.blurry.util.*
 import com.luvin.blurry.view.BlurBottomBar
-import com.luvin.blurry.view.MessageCell
+import com.luvin.blurry.view.TextCell
 import kotlinx.coroutines.*
 import java.io.File
 import java.lang.Exception
 
 class BlurActivity : AppCompatActivity()
 {
-    private val imageLoader = App.imageLoader
-
     private lateinit var rootLayout: FrameLayout
     private lateinit var photoSwitcher: ImageSwitcher
     private lateinit var bottomBar: BlurBottomBar
 
+    private val imageLoader = App.imageLoader
     private lateinit var photoUri: Uri
     private lateinit var photoBitmap: Bitmap
     private lateinit var photoDrawable: Drawable
 
     private var currentBlur: Int = 5
-    private var currentDim: Float = 0F
+    private var currentDim: Float = 0f
+
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -49,8 +45,10 @@ class BlurActivity : AppCompatActivity()
         photoUri = intent.data!!
 
         setupWindow()
-        createUI()
+        createView()
     }
+
+    // View
 
     private fun setupWindow()
     {
@@ -65,7 +63,7 @@ class BlurActivity : AppCompatActivity()
         }
     }
 
-    private fun createUI()
+    private fun createView()
     {
         createRootLayout()
         setContentView(rootLayout, Layout.frame(
@@ -76,7 +74,7 @@ class BlurActivity : AppCompatActivity()
         rootLayout.addView(photoSwitcher, Layout.frame(
             Layout.MATCH_PARENT, Layout.MATCH_PARENT,
             Gravity.START or Gravity.TOP,
-            0, 0, 0, Utils.dp(70)
+            0, 0, 0, AndroidUtil.dp(70)
         ))
 
         createBottomBar()
@@ -89,7 +87,7 @@ class BlurActivity : AppCompatActivity()
     private fun createRootLayout()
     {
         rootLayout = FrameLayout(this).apply {
-            setBackgroundColor( Theme.black )
+            setBackgroundColor(Theme.black)
         }
     }
 
@@ -112,8 +110,11 @@ class BlurActivity : AppCompatActivity()
         val request = ImageRequest.Builder(this)
             .data(photoUri)
             .target {
-                photoBitmap = it.toBitmap().copy(Bitmap.Config.ARGB_8888, true)
-                photoDrawable = BitmapDrawable(resources, fastblur(photoBitmap, currentBlur))
+                photoBitmap = it.asBitmap().copy(Bitmap.Config.ARGB_8888, true)
+                photoDrawable = BitmapDrawable(
+                    resources,
+                    BlurUtil.fastblur(photoBitmap, currentBlur)
+                )
                 photoSwitcher.setImageDrawable(photoDrawable)
             }
             .build()
@@ -144,14 +145,17 @@ class BlurActivity : AppCompatActivity()
 
     private fun updatePhotoDim()
     {
-        photoDrawable.colorFilter = PorterDuffColorFilter(Theme.alphaColor(Theme.black, currentDim), PorterDuff.Mode.SRC_ATOP)
+        photoDrawable.colorFilter = PorterDuffColorFilter(
+            Theme.alphaColor(Theme.black, currentDim),
+            PorterDuff.Mode.SRC_ATOP
+        )
     }
 
     private fun updatePhotoBlur()
     {
         CoroutineScope(Dispatchers.IO).launch {
-            val blurBitmap = fastblur(photoBitmap, currentBlur)
-            photoDrawable = BitmapDrawable( resources, blurBitmap )
+            val blurBitmap = BlurUtil.fastblur(photoBitmap, currentBlur)
+            photoDrawable = BitmapDrawable(resources, blurBitmap)
             updatePhotoDim()
 
             withContext(Dispatchers.Main) {
@@ -163,7 +167,7 @@ class BlurActivity : AppCompatActivity()
     private fun savePhoto()
     {
         val bitmap = photoDrawable.asBitmap()
-        val photoName = Utils.newPhotoFileName()
+        val photoName = PhotoUtil.newPhotoFileName()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         {
@@ -203,7 +207,11 @@ class BlurActivity : AppCompatActivity()
                 //
             }
 
-            MediaScannerConnection.scanFile(this, arrayOf(photoFile.toString()), null) { _, _ ->  }
+            MediaScannerConnection.scanFile(
+                this,
+                arrayOf(photoFile.toString()),
+                null
+            ) { _, _ ->  }
         }
 
         showDownloadedMessage()
@@ -212,43 +220,17 @@ class BlurActivity : AppCompatActivity()
     private fun showDownloadedMessage()
     {
         val snackbar = Snackbar.make(rootLayout, "", 1700).apply {
-            view.setBackgroundColor( Color.TRANSPARENT )
+            view.setBackgroundColor(Color.TRANSPARENT)
         }
-        val snackbarLayout = snackbar.view as Snackbar.SnackbarLayout
-        snackbarLayout.addView( MessageCell(this), 0 )
+        val snackbarLayout = (snackbar.view as Snackbar.SnackbarLayout).apply {
+            addView(
+                TextCell(
+                    this@BlurActivity,
+                    Locale.string(R.string.saved)
+                ),
+                0
+            )
+        }
         snackbar.show()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//

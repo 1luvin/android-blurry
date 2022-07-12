@@ -18,7 +18,7 @@ import com.luvin.blurry.R
 import com.luvin.blurry.util.Layout
 import com.luvin.blurry.util.Locale
 import com.luvin.blurry.util.Theme
-import com.luvin.blurry.util.Utils
+import com.luvin.blurry.util.AndroidUtil
 
 class BlurBottomBar(context: Context) : FrameLayout(context)
 {
@@ -72,7 +72,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
     {
         super.onMeasure(
             MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY),
-            MeasureSpec.makeMeasureSpec(Utils.dp(70), MeasureSpec.EXACTLY)
+            MeasureSpec.makeMeasureSpec(AndroidUtil.dp(70), MeasureSpec.EXACTLY)
         )
     }
 
@@ -280,7 +280,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             addView(imageView, Layout.frame(
                 Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
                 Gravity.TOP or Gravity.CENTER_HORIZONTAL,
-                0, Utils.dp(10), 0, 0
+                0, AndroidUtil.dp(10), 0, 0
             ))
 
             textView = TextView(context).apply {
@@ -295,7 +295,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             addView(textView, Layout.frame(
                 Layout.WRAP_CONTENT, Layout.WRAP_CONTENT,
                 Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-                Utils.dp(10), 0, Utils.dp(10), Utils.dp(12)
+                AndroidUtil.dp(10), 0, AndroidUtil.dp(10), AndroidUtil.dp(12)
             ))
         }
 
@@ -323,11 +323,11 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
         init
         {
             slider.apply {
-                trackHeight = Utils.dp(3)
+                trackHeight = AndroidUtil.dp(3)
                 trackTintList = ColorStateList.valueOf( Theme.gray )
                 trackActiveTintList = ColorStateList.valueOf( Theme.white )
 
-                thumbRadius = Utils.dp(9)
+                thumbRadius = AndroidUtil.dp(9)
                 thumbTintList = ColorStateList.valueOf( Theme.white )
                 haloTintList = ColorStateList.valueOf( Theme.alphaColor(Theme.white, 0.24F) )
 
@@ -336,11 +336,11 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
             addView(slider, Layout.frame(
                 Layout.WRAP_CONTENT, Layout.MATCH_PARENT,
                 Gravity.START or Gravity.CENTER_VERTICAL,
-                Utils.dp(20), 0, 0, 0
+                AndroidUtil.dp(20), 0, 0, 0
             ))
 
             doneTextView = TextView(context).apply {
-                setPadding(0, 0, Utils.dp(20), 0)
+                setPadding(0, 0, AndroidUtil.dp(20), 0)
                 gravity = Gravity.CENTER_VERTICAL
 
                 setTextColor( Theme.blue )
@@ -369,7 +369,7 @@ class BlurBottomBar(context: Context) : FrameLayout(context)
                 MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY)
             )
 
-            val availableWidth = measuredWidth - (Utils.dp(20 * 2) + doneTextView.measuredWidth)
+            val availableWidth = measuredWidth - (AndroidUtil.dp(20 * 2) + doneTextView.measuredWidth)
 
             slider.measure(
                 MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.EXACTLY),
