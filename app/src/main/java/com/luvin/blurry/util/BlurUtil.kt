@@ -1,23 +1,21 @@
 package com.luvin.blurry.util
 
 import android.graphics.Bitmap
+import kotlin.math.roundToInt
 
-object BlurUtil
-{
-    fun fastblur(sentBitmap: Bitmap, radius: Int): Bitmap? {
-        val scale = 0.5F
-        var sentBitmap = sentBitmap
-        val width = Math.round(sentBitmap.width * scale)
-        val height = Math.round(sentBitmap.height * scale)
-        sentBitmap = Bitmap.createScaledBitmap(sentBitmap, width, height, false)
-        val bitmap = sentBitmap.copy(sentBitmap.config, true)
+object BlurUtil {
+
+    fun fastblur(bitmap: Bitmap, radius: Int): Bitmap? {
+        val scale = 0.5f
+        val w = (bitmap.width * scale).roundToInt()
+        val h = (bitmap.height * scale).roundToInt()
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
+        val blurBitmap = scaledBitmap.copy(scaledBitmap.config, true)
         if (radius < 1) {
             return null
         }
-        val w = bitmap.width
-        val h = bitmap.height
         val pix = IntArray(w * h)
-        bitmap.getPixels(pix, 0, w, 0, 0, w, h)
+        blurBitmap.getPixels(pix, 0, w, 0, 0, w, h)
         val wm = w - 1
         val hm = h - 1
         val wh = w * h
@@ -175,7 +173,8 @@ object BlurUtil
             while (y < h) {
 
                 // Preserve alpha channel: ( 0xff000000 & pix[yi] )
-                pix[yi] = -0x1000000 and pix[yi] or (dv[rsum] shl 16) or (dv[gsum] shl 8) or dv[bsum]
+                pix[yi] =
+                    -0x1000000 and pix[yi] or (dv[rsum] shl 16) or (dv[gsum] shl 8) or dv[bsum]
                 rsum -= routsum
                 gsum -= goutsum
                 bsum -= boutsum
@@ -210,7 +209,7 @@ object BlurUtil
             }
             x++
         }
-        bitmap.setPixels(pix, 0, w, 0, 0, w, h)
-        return bitmap
+        blurBitmap.setPixels(pix, 0, w, 0, 0, w, h)
+        return blurBitmap
     }
 }

@@ -1,13 +1,10 @@
-package com.luvin.blurry.util
+package com.luvin.blurry.extension
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 
-// Drawable
-
-fun Drawable.asBitmap() : Bitmap
-{
+fun Drawable.asBitmap(): Bitmap {
     val bitmap = Bitmap.createBitmap(
         intrinsicWidth,
         intrinsicHeight,

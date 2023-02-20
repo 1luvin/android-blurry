@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">Blurry</string>
 
-    <string name="choose_photo">Choose a photo</string>
+    <string name="ChoosePhoto">Choose a photo</string>
 
-    <string name="close">Close</string>
-    <string name="blur">Blur</string>
-    <string name="dim">Dim</string>
-    <string name="save">Save</string>
-    <string name="done">Done</string>
-    <string name="saved">Saved</string>
-
+    <string name="Close">Close</string>
+    <string name="Blur">Blur</string>
+    <string name="Dim">Dim</string>
+    <string name="Save">Save</string>
+    <string name="Done">Done</string>
+    <string name="Saved">Saved</string>
 </resources>

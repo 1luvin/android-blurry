@@ -5,19 +5,17 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Locale
 
-object PhotoUtil
-{
+object PhotoUtil {
+
     fun randomBlurredPhotoUrl(
         width: Int, height: Int,
         @IntRange(from = 1, to = 10) blur: Int
-    ) : String
-    {
+    ): String {
         return "https://picsum.photos/$width/$height/?blur=$blur"
     }
 
-    fun newPhotoFileName() : String
-    {
-        val dateString = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format( Date() )
+    fun newPhotoFileName(): String {
+        val dateString = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         return "IMG_${dateString}.jpg"
     }
 }

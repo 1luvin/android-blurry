@@ -2,29 +2,21 @@ package com.luvin.blurry
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import android.os.Environment
 import coil.ImageLoader
 import coil.request.CachePolicy
-import com.luvin.blurry.util.Locale
 
-class App : Application()
-{
-    companion object
-    {
-        @Volatile
-        private var Instance: App? = null
-        fun instance() =
-            Instance ?: synchronized(this) {
-                Instance ?: App().also {
-                    Instance = it
-                }
-            }
+class App : Application() {
 
-        val appContext: Context get() = instance().applicationContext
+    companion object {
+        private lateinit var instance: App
+        val appContext: Context get() = instance.applicationContext
 
-        fun appDirPath() : String
-        {
-            return "${Environment.DIRECTORY_PICTURES}/Blurry"
+        val savePath: String get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            "${Environment.DIRECTORY_PICTURES}/Blurry"
+        } else {
+            "${Environment.getExternalStorageDirectory().absolutePath}/Pictures/Blurry/"
         }
 
         val imageLoader: ImageLoader by lazy {
@@ -35,44 +27,8 @@ class App : Application()
         }
     }
 
-    override fun onCreate()
-    {
+    override fun onCreate() {
         super.onCreate()
-        Instance = this
+        instance = this
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
