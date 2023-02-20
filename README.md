@@ -1,4 +1,4 @@
-# Blurry
+# Blurry – blur & dim photo editor
 
 ### Choose a photo, adjust the blur, save
 
